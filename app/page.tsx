@@ -2,40 +2,47 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import Montre from "./components/Montre";
 
-type TimersSchema = {
+type TimerSchema = {
   idStart: number;
   idEnd: number;
-  duration: number;
+  interTime: number; //Calcule de l'ecart
+  remaningTime: number; //Valeur qui update
   isRunning: boolean;
 };
 
-export default function Home() {
-  // //Initialisation
-  // if (!localStorage.getItem("Timers")) {
-  //   const initialTimers = [
-  //     {
-  //       idStart: 0,
-  //       idEnd: 0,
-  //       duration: 0,
-  //       isRunning: false, // Modifié pour indiquer que c'est un booléen
-  //     },
-  //     {
-  //       idStart: 2,
-  //       idEnd: 3,
-  //       duration: 3,
-  //       isRunning: true, // Modifié pour indiquer que c'est un booléen
-  //     },
-  //   ];
-  //   localStorage.setItem("Timers", JSON.stringify(initialTimers));
-  // }
+type SaisiShema = {
+  seconds: string;
+  minutes: string;
+  hours: string;
+};
 
-  const [Timers, setTimers] = useState<TimersSchema[]>([]);
+export default function Home() {
+  const [timers, setTimers] = useState<TimerSchema[]>([]);
+  const [saisiTime, setSaisiTime] = useState({
+    seconds: "00",
+    minutes: "00",
+    hours: "00",
+  });
+
+  const convertToMilliseconds = (saisi: SaisiShema) => {
+    const { seconds, minutes, hours } = saisi;
+
+    // Convert each part to integer and then to milliseconds
+    const hoursInMs = parseInt(hours, 10) * 60 * 60 * 1000;
+    const minutesInMs = parseInt(minutes, 10) * 60 * 1000;
+    const secondsInMs = parseInt(seconds, 10) * 1000;
+
+    // Sum all parts to get total milliseconds
+    const totalMilliseconds = hoursInMs + minutesInMs + secondsInMs;
+
+    return totalMilliseconds;
+  };
 
   useEffect(() => {
     const storedTimersJson = localStorage.getItem("Timers");
     if (storedTimersJson) {
       try {
-        const storedTimers: TimersSchema[] = JSON.parse(storedTimersJson);
+        const storedTimers: TimerSchema[] = JSON.parse(storedTimersJson);
         setTimers(storedTimers);
       } catch (error) {
         console.error("Erreur lors de la conversion JSON :", error);
@@ -43,39 +50,37 @@ export default function Home() {
     }
   }, []);
 
-  const [time, setTime] = useState({
-    seconds: "00",
-    minutes: "00",
-    hours: "00",
-  });
-
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
 
     const filteredValue = value.replace(/[^\d]/g, "").slice(0, 2);
 
-    setTime({
-      ...time,
+    setSaisiTime({
+      ...saisiTime,
       [name]: filteredValue,
     });
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const ms = convertToMilliseconds(saisiTime);
+
     const updateTimers = [
-      ...Timers,
+      ...timers,
       {
         idStart: Date.now(),
-        idEnd: Date.now() + 9000,
-        duration: 9000,
+        idEnd: Date.now() + ms,
+        interTime: ms,
+        remaningTime: ms,
         isRunning: true,
       },
     ];
     setTimers(updateTimers);
     localStorage.setItem("Timers", JSON.stringify(updateTimers));
   };
-  const suppTimer = (data: TimersSchema, index: number) => {
-    const updatedTimers = Timers.filter((timer) => timer !== data);
+  const suppTimer = (data: TimerSchema, index: number) => {
+    const updatedTimers = timers.filter((timer) => timer !== data);
     setTimers(updatedTimers);
     localStorage.setItem("Timers", JSON.stringify(updatedTimers));
   };
@@ -90,7 +95,7 @@ export default function Home() {
             <input
               type="text"
               name="hours"
-              value={time.hours}
+              value={saisiTime.hours}
               onChange={handleChange}
               inputMode="numeric"
               pattern="[0-9]*"
@@ -108,7 +113,7 @@ export default function Home() {
             <input
               type="text"
               name="minutes"
-              value={time.minutes}
+              value={saisiTime.minutes}
               onChange={handleChange}
               inputMode="numeric"
               pattern="[0-9]*"
@@ -126,7 +131,7 @@ export default function Home() {
             <input
               type="text"
               name="seconds"
-              value={time.seconds}
+              value={saisiTime.seconds}
               onChange={handleChange}
               inputMode="numeric"
               pattern="[0-9]*"
@@ -141,12 +146,18 @@ export default function Home() {
         <button type="submit">Click pour envoyer</button>
       </form>
 
-      {Timers.map((data, index) => (
-        <>
-          <Montre key={index} data={data} />
-          <button onClick={() => suppTimer(data, index)}> Supp {index}</button>
-        </>
-      ))}
+      <p>{JSON.stringify(timers)}</p>
+
+      {timers &&
+        timers.map((data, index) => (
+          <div className="bg-slate-800 text-white p-10 rounded-xl m-5 h-64 w-[300px] flex items-center justify-center">
+            <Montre key={index} data={data} />
+            <button onClick={() => suppTimer(data, index)}>
+              {" "}
+              Supp {index}
+            </button>
+          </div>
+        ))}
     </div>
   );
 }

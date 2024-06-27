@@ -1,23 +1,15 @@
 "use client";
 import React, { useEffect, useState } from "react";
 
-type TimersSchema = {
+type TimerSchema = {
   idStart: number;
   idEnd: number;
-  duration: number;
+  interTime: number; //Calcule de l'ecart
+  remaningTime: number; //Valeur qui update
   isRunning: boolean;
-}[];
+};
 
-export default function Montre({
-  data,
-}: {
-  data: {
-    idStart: number;
-    idEnd: number;
-    duration: number;
-    isRunning: boolean;
-  };
-}) {
+export default function Montre({ data }: { data: TimerSchema }) {
   const [intervale, setDuration] = useState(data.idEnd - data.idStart);
 
   useEffect(() => {
@@ -41,16 +33,26 @@ export default function Montre({
     return () => clearInterval(intervalId);
   }, []);
 
+  function formatTime(milliseconds: number): string {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    // Formater les heures, minutes et secondes pour avoir toujours deux chiffres
+    const formattedTime = `${String(hours).padStart(2, "0")}:${String(
+      minutes
+    ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    return formattedTime;
+  }
+
   return (
     <div>
-      <p> LA MONTRE : End ID: </p>
-
-      <div key={" "}>
-        <p>Start ID: {data.idStart} </p>
+      <p className="text-2xl">{formatTime(intervale)}</p>
+      {/* <p>Start ID: {data.idStart} </p>
         <p>End ID: {data.idEnd}</p>
         <p>Duration: seconds {intervale}</p>
-        <p>Is Running: {data.isRunning}</p>
-      </div>
+        <p>Is Running: {data.isRunning}</p> */}
     </div>
   );
 }

@@ -8,7 +8,12 @@ type TimerSchema = {
 type MontreProps = {
   data: TimerSchema;
   table: TimerSchema[];
-  updateLocal: (newTimers: TimerSchema[]) => void;
+  localUpdate: (newTimers: TimerSchema[]) => void;
+};
+
+type InputTimerProps = {
+  data: TimerSchema[];
+  localUpdate: (newTimers: TimerSchema[]) => void;
 };
 
 type SaisiShema = {

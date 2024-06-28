@@ -2,22 +2,9 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import Montre from "./components/Montre";
 
-type TimerSchema = {
-  idStart: number;
-  idEnd: number;
-  interTime: number; //Calcule de l'ecart
-  remaningTime: number; //Valeur qui update
-  isRunning: boolean;
-};
-
-type SaisiShema = {
-  seconds: string;
-  minutes: string;
-  hours: string;
-};
-
 export default function Home() {
   const [timers, setTimers] = useState<TimerSchema[]>([]);
+
   const [saisiTime, setSaisiTime] = useState({
     seconds: "00",
     minutes: "00",
@@ -38,7 +25,35 @@ export default function Home() {
     return totalMilliseconds;
   };
 
-  useEffect(() => {
+  const localUpdate = (array: TimerSchema[]) => {
+    localStorage.setItem("Timers", JSON.stringify(array));
+    setTimers(array);
+  };
+
+  const suppTimer = (data: TimerSchema, index: number) => {
+    const updatedTimers = timers.filter((timer) => timer !== data);
+    localUpdate(updatedTimers);
+  };
+
+  const stopTimer = (idStart: number) => {
+    const updatedTimers = timers.map((timer) =>
+      timer.idStart === idStart
+        ? { ...timer, isRunning: !timer.isRunning }
+        : timer
+    );
+    localUpdate(updatedTimers);
+  };
+
+  const resetTimer = (idStart: number, idEnd: number) => {
+    const updatedTimers = timers.map((timer) =>
+      timer.idStart === idStart
+        ? { ...timer, interTime: idEnd - idStart, isRunning: true }
+        : timer
+    );
+    localUpdate(updatedTimers);
+  };
+
+  const fetchData = () => {
     const storedTimersJson = localStorage.getItem("Timers");
     if (storedTimersJson) {
       try {
@@ -48,6 +63,10 @@ export default function Home() {
         console.error("Erreur lors de la conversion JSON :", error);
       }
     }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -71,18 +90,11 @@ export default function Home() {
       {
         idStart: Date.now(),
         idEnd: Date.now() + ms,
-        interTime: ms,
-        remaningTime: ms,
+        interTime: Date.now() + ms - Date.now(),
         isRunning: true,
       },
     ];
-    setTimers(updateTimers);
-    localStorage.setItem("Timers", JSON.stringify(updateTimers));
-  };
-  const suppTimer = (data: TimerSchema, index: number) => {
-    const updatedTimers = timers.filter((timer) => timer !== data);
-    setTimers(updatedTimers);
-    localStorage.setItem("Timers", JSON.stringify(updatedTimers));
+    localUpdate(updateTimers);
   };
 
   return (
@@ -100,7 +112,6 @@ export default function Home() {
               inputMode="numeric"
               pattern="[0-9]*"
               onFocus={(e) => e.target.select()}
-              style={{ direction: "rtl" }}
               min="0"
               max="59"
               step="1"
@@ -118,7 +129,7 @@ export default function Home() {
               inputMode="numeric"
               pattern="[0-9]*"
               onFocus={(e) => e.target.select()}
-              style={{ direction: "rtl" }}
+              style={{ textAlign: "right" }}
               min="0"
               max="59"
               step="1"
@@ -136,7 +147,7 @@ export default function Home() {
               inputMode="numeric"
               pattern="[0-9]*"
               onFocus={(e) => e.target.select()}
-              style={{ direction: "rtl" }}
+              style={{ direction: "rtl", textAlign: "right" }}
               min="0"
               max="59"
               step="1"
@@ -151,10 +162,18 @@ export default function Home() {
       {timers &&
         timers.map((data, index) => (
           <div className="bg-slate-800 text-white p-10 rounded-xl m-5 h-64 w-[300px] flex items-center justify-center">
-            <Montre key={index} data={data} />
-            <button onClick={() => suppTimer(data, index)}>
-              {" "}
-              Supp {index}
+            <Montre
+              key={Math.random()}
+              data={data}
+              table={timers}
+              updateLocal={localUpdate}
+            />
+            <button onClick={() => suppTimer(data, index)}>Supp {index}</button>
+            <button onClick={() => stopTimer(data.idStart)}>
+              Pause {index}
+            </button>
+            <button onClick={() => resetTimer(data.idStart, data.idEnd)}>
+              Restarte {index}
             </button>
           </div>
         ))}

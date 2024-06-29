@@ -1,12 +1,22 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import React, { ChangeEvent, FormEvent, useState } from "react";
 import { convertToMilliseconds } from "../lib/formatage";
+import useTimerStore from "../timerStore";
+import { TimerSchema } from "../types/types";
 
-export default function InputTimer({ data, localUpdate }: InputTimerProps) {
+type InputTimerProps = {
+  localUpdate?: (newTimers: TimerSchema[]) => void;
+};
+
+export default function InputTimer({ localUpdate }: InputTimerProps) {
   const [saisiTime, setSaisiTime] = useState({
     seconds: "00",
     minutes: "00",
     hours: "00",
   });
+
+  const { addTimer } = useTimerStore((state) => ({
+    addTimer: state.addTimer,
+  }));
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -24,20 +34,18 @@ export default function InputTimer({ data, localUpdate }: InputTimerProps) {
 
     const ms = convertToMilliseconds(saisiTime);
 
-    const updateTimers = [
-      ...data,
-      {
-        idStart: Date.now(),
-        idEnd: Date.now() + ms,
-        interTime: Date.now() + ms - Date.now(),
-        isRunning: true,
-      },
-    ];
-    localUpdate(updateTimers);
+    const newTimer: TimerSchema = {
+      idStart: Date.now(),
+      idEnd: Date.now() + ms,
+      interTime: ms,
+      isRunning: true,
+    };
+
+    addTimer(newTimer); // Mettre à jour localement si nécessaire
   };
+
   return (
     <>
-      {" "}
       <form onSubmit={handleSubmit}>
         <div>
           <label>
@@ -51,7 +59,7 @@ export default function InputTimer({ data, localUpdate }: InputTimerProps) {
               pattern="[0-9]*"
               onFocus={(e) => e.target.select()}
               min="0"
-              max="59"
+              max="23"
               step="1"
             />
           </label>

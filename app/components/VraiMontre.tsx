@@ -1,81 +1,64 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { formatTime } from "../lib/formatage";
+import useTimerStore from "../timerStore";
+import { TimerSchema } from "../types/types";
 
-export default function Montre({ data, table, localUpdate }: MontreProps) {
+type Props = {
+  data: TimerSchema;
+};
+
+export default function VraiMontre({ data }: Props) {
+  const { updateTimer, removeTimer } = useTimerStore((state) => ({
+    updateTimer: state.updateTimer,
+    removeTimer: state.removeTimer,
+  }));
+
   const [duration, setDuration] = useState(data.interTime);
-
-  const updateInterTimer = (
-    idStart: number,
-    table: TimerSchema[],
-    newRemainingTime: number
-  ) => {
-    const updatedTimers = table.map((timer) =>
-      timer.idStart === idStart
-        ? {
-            ...timer,
-            interTime: newRemainingTime,
-          }
-        : timer
-    );
-    localUpdate(updatedTimers);
-  };
-
-  const toggleRunning = (idStart: number, table: TimerSchema[]) => {
-    const updatedTimers = table.map((timer) =>
-      timer.idStart === idStart
-        ? { ...timer, isRunning: !timer.isRunning }
-        : timer
-    );
-    localUpdate(updatedTimers);
-  };
-
-  const resetTimer = (idStart: number) => {
-    const updatedTimers = table.map((timer) =>
-      timer.idStart === idStart
-        ? {
-            ...timer,
-            interTime: timer.idEnd - timer.idStart,
-            isRunning: false,
-          }
-        : timer
-    );
-    localUpdate(updatedTimers);
-  };
-
-  const suppTimer = (data: TimerSchema) => {
-    const updatedTimers = table.filter((timer) => timer !== data);
-    localUpdate(updatedTimers);
-  };
 
   useEffect(() => {
     setDuration(data.interTime);
   }, [data.interTime]);
 
   useEffect(() => {
+    let intervalId: number;
+
     if (data.isRunning) {
-      const intervalId = setInterval(() => {
+      intervalId = window.setInterval(() => {
         setDuration((prevDuration) => {
           const newDuration = prevDuration - 1000;
           if (newDuration <= 0) {
-            toggleRunning(data.idStart, table);
             clearInterval(intervalId);
+            updateTimer(data.idStart, { isRunning: false });
             return 0;
           }
-          updateInterTimer(data.idStart, table, newDuration);
+          updateTimer(data.idStart, { interTime: newDuration });
           return newDuration;
         });
       }, 1000);
-      return () => clearInterval(intervalId);
     }
-  }, [data.interTime, table, data.idStart]);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [data.idStart, data.isRunning, updateTimer]);
+
+  const handleSuppTimer = () => {
+    removeTimer(data.idStart);
+  };
 
   return (
     <div>
       <p className="text-2xl">{formatTime(duration)}</p>
-      <button onClick={() => suppTimer(data)}>Supp</button>
-      <button onClick={() => toggleRunning(data.idStart, table)}>Pause</button>
-      <button onClick={() => resetTimer(data.idStart)}>Restarte</button>
+      <button onClick={handleSuppTimer}>Supp</button>
+      <button
+        onClick={() =>
+          updateTimer(data.idStart, { isRunning: !data.isRunning })
+        }
+      >
+        {data.isRunning ? "Pause" : "Restart"}
+      </button>
     </div>
   );
 }

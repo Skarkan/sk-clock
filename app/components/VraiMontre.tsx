@@ -10,9 +10,10 @@ type Props = {
 };
 
 export default function VraiMontre({ data }: Props) {
-  const { updateTimer, removeTimer } = useTimerStore((state) => ({
+  const { updateTimer, removeTimer, restartTimer } = useTimerStore((state) => ({
     updateTimer: state.updateTimer,
     removeTimer: state.removeTimer,
+    restartTimer: state.restartTimer,
   }));
 
   const [duration, setDuration] = useState(data.interTime);
@@ -49,16 +50,32 @@ export default function VraiMontre({ data }: Props) {
   };
 
   return (
-    <div>
-      <p className="text-2xl">{formatTime(duration)}</p>
-      <button onClick={handleSuppTimer}>Supp</button>
-      <button
-        onClick={() =>
-          updateTimer(data.idStart, { isRunning: !data.isRunning })
-        }
-      >
-        {data.isRunning ? "Pause" : "Restart"}
-      </button>
+    <div className=" bg-slate-800 text-white p-10 rounded-2xl m-5 h-64 w-[400px] flex flex-col items-center">
+      <p className="text-5xl py-10">{formatTime(duration)}</p>
+      <div className="flex flex-row w-max space-x-5">
+        <button
+          className="px-4 py-2 bg-gray-600 rounded-lg"
+          onClick={handleSuppTimer}
+        >
+          Delete
+        </button>
+        <button
+          className={`px-4 py-2 ${
+            data.isRunning ? "bg-gray-600" : "bg-gray-700 "
+          } rounded-lg`}
+          onClick={() =>
+            updateTimer(data.idStart, { isRunning: !data.isRunning })
+          }
+        >
+          {data.isRunning ? "Pause" : "Resume"}
+        </button>
+        <button
+          className="px-4 py-2 bg-gray-600 rounded-lg"
+          onClick={() => restartTimer(data.idStart)}
+        >
+          Restart
+        </button>
+      </div>
     </div>
   );
 }

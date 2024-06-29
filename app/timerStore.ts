@@ -7,6 +7,7 @@ export type TimerStore = {
   addTimer: (timer: TimerSchema) => void;
   removeTimer: (idStart: number) => void;
   updateTimer: (idStart: number, updatedTimer: Partial<TimerSchema>) => void;
+  restartTimer: (idStart: number) => void;
 };
 
 const useTimerStore = create<TimerStore>((set, get) => ({
@@ -38,6 +39,25 @@ const useTimerStore = create<TimerStore>((set, get) => ({
       ),
     }));
     localStorage.setItem("Timers", JSON.stringify(get().timers));
+  },
+
+  restartTimer: (idStart: number) => {
+    const timerToRestart = get().timers.find(
+      (timer) => timer.idStart === idStart
+    );
+    if (timerToRestart) {
+      const updatedTimers = get().timers.map((timer) =>
+        timer.idStart === idStart
+          ? {
+              ...timer,
+              interTime: timer.idEnd - timer.idStart,
+              isRunning: false,
+            }
+          : timer
+      );
+      set({ timers: updatedTimers });
+      localStorage.setItem("Timers", JSON.stringify(updatedTimers));
+    }
   },
 }));
 

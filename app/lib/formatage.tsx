@@ -4,13 +4,22 @@ export function formatTime(milliseconds: number): string {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  const formattedTime = `${String(hours).padStart(2, "0")}:${String(
-    minutes
-  ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  return formattedTime;
+  if (hours > 0) {
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+      2,
+      "0"
+    )}:${String(seconds).padStart(2, "0")}`;
+  } else {
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
+  }
 }
 
-export const convertToMilliseconds = (saisi: SaisiShema) => {
+type SaisiSchema = { seconds: string; minutes: string; hours: string };
+
+export const convertToMilliseconds = (saisi: SaisiSchema) => {
   const { seconds, minutes, hours } = saisi;
 
   // Convert each part to integer and then to milliseconds

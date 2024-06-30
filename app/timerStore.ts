@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { TimerSchema } from "./types/types";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 export type TimerStore = {
   timers: TimerSchema[];
@@ -10,55 +11,58 @@ export type TimerStore = {
   restartTimer: (idStart: number) => void;
 };
 
-const useTimerStore = create<TimerStore>((set, get) => ({
-  timers: [],
+export const useTimerStore = create<TimerStore>()(
+  persist(
+    (set, get) => ({
+      timers: [],
 
-  setTimers: (timers: TimerSchema[]) => {
-    set({ timers });
-    localStorage.setItem("Timers", JSON.stringify(timers));
-  },
+      setTimers: (timers: TimerSchema[]) => {
+        set({ timers });
+      },
 
-  addTimer: (timer: TimerSchema) => {
-    set((state) => ({
-      timers: [...state.timers, timer],
-    }));
-    localStorage.setItem("Timers", JSON.stringify(get().timers));
-  },
+      addTimer: (timer: TimerSchema) => {
+        set((state) => ({
+          timers: [...state.timers, timer],
+        }));
+      },
 
-  removeTimer: (idStart: number) => {
-    set((state) => ({
-      timers: state.timers.filter((timer) => timer.idStart !== idStart),
-    }));
-    localStorage.setItem("Timers", JSON.stringify(get().timers));
-  },
+      removeTimer: (idStart: number) => {
+        set((state) => ({
+          timers: state.timers.filter((timer) => timer.idStart !== idStart),
+        }));
+      },
 
-  updateTimer: (idStart: number, updatedTimer: Partial<TimerSchema>) => {
-    set((state) => ({
-      timers: state.timers.map((timer) =>
-        timer.idStart === idStart ? { ...timer, ...updatedTimer } : timer
-      ),
-    }));
-    localStorage.setItem("Timers", JSON.stringify(get().timers));
-  },
+      updateTimer: (idStart: number, updatedTimer: Partial<TimerSchema>) => {
+        set((state) => ({
+          timers: state.timers.map((timer) =>
+            timer.idStart === idStart ? { ...timer, ...updatedTimer } : timer
+          ),
+        }));
+      },
 
-  restartTimer: (idStart: number) => {
-    const timerToRestart = get().timers.find(
-      (timer) => timer.idStart === idStart
-    );
-    if (timerToRestart) {
-      const updatedTimers = get().timers.map((timer) =>
-        timer.idStart === idStart
-          ? {
-              ...timer,
-              interTime: timer.idEnd - timer.idStart,
-              isRunning: false,
-            }
-          : timer
-      );
-      set({ timers: updatedTimers });
-      localStorage.setItem("Timers", JSON.stringify(updatedTimers));
+      restartTimer: (idStart: number) => {
+        const timerToRestart = get().timers.find(
+          (timer) => timer.idStart === idStart
+        );
+        if (timerToRestart) {
+          const updatedTimers = get().timers.map((timer) =>
+            timer.idStart === idStart
+              ? {
+                  ...timer,
+                  interTime: timer.idEnd - timer.idStart,
+                  isRunning: true,
+                }
+              : timer
+          );
+          set({ timers: updatedTimers });
+        }
+      },
+    }),
+    {
+      name: "timer-storage",
+      storage: createJSONStorage(() => localStorage),
     }
-  },
-}));
+  )
+);
 
 export default useTimerStore;

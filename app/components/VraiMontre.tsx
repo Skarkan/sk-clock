@@ -2,8 +2,16 @@
 import React, { useEffect, useState } from "react";
 import { formatTime } from "../lib/formatage";
 import useTimerStore from "../timerStore";
-import { TimerSchema } from "../types/types";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
+
+export type TimerSchema = {
+  idStart: number;
+  idEnd: number;
+  interTime: number;
+  isRunning: boolean;
+  name: string;
+  notified: boolean;
+};
 
 type Props = {
   data: TimerSchema;

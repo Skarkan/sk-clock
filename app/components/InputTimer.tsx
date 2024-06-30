@@ -1,7 +1,14 @@
 import React, { ChangeEvent, FormEvent, useState } from "react";
 import { convertToMilliseconds } from "../lib/formatage";
 import useTimerStore from "../timerStore";
-import { TimerSchema } from "../types/types";
+export type TimerSchema = {
+  idStart: number;
+  idEnd: number;
+  interTime: number;
+  isRunning: boolean;
+  name: string;
+  notified: boolean;
+};
 
 export default function InputTimer() {
   const [saisiTime, setSaisiTime] = useState({

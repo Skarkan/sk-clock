@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { TimerSchema } from "./types/types";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 export type TimerStore = {
@@ -9,6 +8,14 @@ export type TimerStore = {
   removeTimer: (idStart: number) => void;
   updateTimer: (idStart: number, updatedTimer: Partial<TimerSchema>) => void;
   restartTimer: (idStart: number) => void;
+};
+export type TimerSchema = {
+  idStart: number;
+  idEnd: number;
+  interTime: number;
+  isRunning: boolean;
+  name: string;
+  notified: boolean;
 };
 
 export const useTimerStore = create<TimerStore>()(

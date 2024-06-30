@@ -10,6 +10,12 @@ type Props = {
   data: TimerSchema;
 };
 
+const playNotificationSound = () => {
+  const audio = new Audio("/notification.mp3");
+  audio.volume = 0.2;
+  audio.play();
+};
+
 export default function VraiMontre({ data }: Props) {
   const { updateTimer, removeTimer, restartTimer, timers } = useTimerStore(
     (state) => ({
@@ -31,7 +37,15 @@ export default function VraiMontre({ data }: Props) {
           interTime: Math.max(timer.interTime - 1000, 0),
         });
         if (timer.interTime <= 1000) {
-          updateTimer(data.idStart, { isRunning: false });
+          if (timer.notified === false) {
+            playNotificationSound();
+          }
+          if (Notification.permission === "granted") {
+            new Notification("Hey !", {
+              body: `Your timer ${timer.name} has ended!`,
+            });
+          }
+          updateTimer(data.idStart, { isRunning: false, notified: true });
           clearInterval(intervalId);
         }
       }, 1000);

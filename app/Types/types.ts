@@ -4,4 +4,5 @@ export type TimerSchema = {
   interTime: number;
   isRunning: boolean;
   name: string;
+  notified: boolean;
 };

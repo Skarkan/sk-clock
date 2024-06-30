@@ -51,6 +51,7 @@ export const useTimerStore = create<TimerStore>()(
                   ...timer,
                   interTime: timer.idEnd - timer.idStart,
                   isRunning: true,
+                  notified: false,
                 }
               : timer
           );

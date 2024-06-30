@@ -50,11 +50,13 @@ export default function InputTimer() {
       idEnd: Date.now() + ms,
       interTime: ms,
       isRunning: true,
-      name: timerName, // Include timer name
+      name: timerName,
+      notified: false,
     };
 
     addTimer(newTimer);
-    setTimerName(""); // Reset timer name field after submission
+    setTimerName(""); // Réinitialiser le champ du nom du timer après soumission
+    // Incrémenter l'ordre pour le prochain timer
   };
 
   return (
